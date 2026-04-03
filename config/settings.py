@@ -32,7 +32,7 @@ DOCS_DIR = DATA_DIR / "docs"
 LOG_DIR = BASE_DIR / "logs"
 
 for path in [DATA_DIR, UPLOAD_DIR, DOCS_DIR, LOG_DIR]:
-os.makedirs(path, exist_ok=True)
+  os.makedirs(path, exist_ok=True)
 
 # ==============================
 
