@@ -64,9 +64,18 @@ class RAGPipeline:
         self.client = get_llm()
 
     def retrieve_context(self, query):
-        docs = self.retriever.get_relevant_documents(query)
-        return "\n".join([d.page_content for d in docs])
-
+        try:
+            docs = self.retriever.invoke(query)
+    
+            if not docs:
+                return "No relevant context found."
+    
+            context = "\n\n".join([doc.page_content for doc in docs])
+            return context
+    
+        except Exception as e:
+            print("Retriever Error:", str(e))
+        return "Error retrieving context"
     def generate(self, prompt):
         response = self.client.chat.completions.create(
             model="llama3-70b-8192",
@@ -76,7 +85,7 @@ class RAGPipeline:
 
     def run(self, query):
         context = self.retrieve_context(query)
-
+        
         prompt = f"""
         Use the context below to answer:
 
