@@ -141,7 +141,9 @@ def take_test_page(user, test_id):
     col1, col2, col3 = st.columns(3)
 
     if col1.button("💡 Hint"):
-        hint = generate_hint(question)
+        context = qa_chain.retrieve_context(question)
+        hint = generate_hint(question, context)
+        #hint = generate_hint(question)
         st.info(hint)
         st.session_state.hints[idx] = st.session_state.hints.get(idx, 0) + 1
 
