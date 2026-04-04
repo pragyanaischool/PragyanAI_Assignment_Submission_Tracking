@@ -24,8 +24,8 @@ GROQ_API_KEY = get_secret("GROQ_API_KEY")
 
 # ==============================
 
-BASE_DIR = Path(**file**).resolve().parent.parent
-
+#BASE_DIR = Path(**file**).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
 UPLOAD_DIR = BASE_DIR / "uploads"
 DOCS_DIR = DATA_DIR / "docs"
@@ -51,7 +51,7 @@ QUESTION_LOGS_FILE = DATA_DIR / "question_logs.xlsx"
 # 🤖 LLM CONFIG
 
 # ==============================
-
+GROQ_API_KEY = get_secret("GROQ_API_KEY")
 LLM_MODEL = get_secret("LLM_MODEL", "llama-3.3-70b-versatile")
 FAST_LLM_MODEL = get_secret("FAST_LLM_MODEL", "llama-3.3-70b-versatile")
 
