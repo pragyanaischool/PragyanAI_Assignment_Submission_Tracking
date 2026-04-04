@@ -5,7 +5,7 @@ import sys
 # ==============================
 # ⚙️ INIT SYSTEM
 # ==============================
-
+import os
 from database.migrations import run_migrations
 from utils.session_manager import init_session, get_user, clear_session
 from ui.styles import apply_styles
