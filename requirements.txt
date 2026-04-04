@@ -4,11 +4,11 @@ pandas
 numpy
 openpyxl
 # RAG + LLM # Groq LLM
-langchain
 groq
+langchain
+langchain-core
 langchain-groq
 langchain-community
-langchain-core
 faiss-cpu
 # Embeddings
 sentence-transformers
