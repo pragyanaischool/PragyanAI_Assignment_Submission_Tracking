@@ -9,21 +9,34 @@ from pypdf import PdfReader
 # ==============================
 
 def load_pdf(file_path: str) -> str:
-    """Extract text from PDF"""
+    """
+    Load PDF and return LangChain documents
+    """
+
+    # Debug: check file existence
+    print("📂 Checking file path:", file_path)
+    print("📂 Absolute path:", os.path.abspath(file_path))
+
+    if not os.path.exists(file_path):
+        print("❌ File NOT FOUND:", file_path)
+        return []
+
+    print("✅ File FOUND:", file_path)
+
     try:
-        reader = PdfReader(file_path)
-        text = ""
+        loader = PyPDFLoader(file_path)
+        docs = loader.load()
 
-        for page in reader.pages:
-            content = page.extract_text()
-            if content:
-                text += content + "\n"
+        print("📄 Loaded pages:", len(docs))
 
-        return text.strip()
+        if docs:
+            print("🧠 Sample content:", docs[0].page_content[:200])
+
+        return docs
 
     except Exception as e:
-        raise ValueError(f"Error reading PDF: {str(e)}")
-
+        print("❌ Error loading PDF:", str(e))
+        return []
 
 # ==============================
 # 📄 LOAD TEXT FILE
