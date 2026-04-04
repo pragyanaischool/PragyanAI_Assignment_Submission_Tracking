@@ -23,8 +23,9 @@ def save_uploaded_file(file, usn, test_id):
     import os
     os.makedirs(folder_path, exist_ok=True)
 
-    file_path = f"{folder_path}/{file.name}"
-
+    #file_path = f"{folder_path}/{file.name}"
+    
+    file_path = f"{folder}/{uuid.uuid4()}_{file.name}"
     with open(file_path, "wb") as f:
         f.write(file.read())
 
