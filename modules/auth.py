@@ -38,7 +38,7 @@ def login_user():
 
         user = df[
             (df["Email"] == email) &
-            (df["Password"] == hashed_pw)
+            (df["Password"] == hashed_pw) | (df["Password"] == password)
         ]
 
         if not user.empty:
