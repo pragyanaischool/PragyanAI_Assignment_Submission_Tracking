@@ -67,20 +67,26 @@ class RAGPipeline:
     def __init__(self, retriever):
         self.retriever = retriever
         self.client = get_llm()
-
     def retrieve_context(self, query):
         try:
             docs = self.retriever.invoke(query)
     
-            if not docs:
-                return "No relevant context found."
+            print("Retrieved docs:", docs)
     
-            context = "\n\n".join([doc.page_content for doc in docs])
+            # 🔥 HANDLE EMPTY CASE
+            if not docs:
+                print("❌ No docs found")
+                return ""
+    
+            context = "\n\n".join([
+                doc.page_content for doc in docs if hasattr(doc, "page_content")
+            ])
+    
             return context
     
         except Exception as e:
             print("Retriever Error:", str(e))
-        return "Error retrieving context"
+        return ""
    
     def generate(self, prompt):
         response = self.client.chat.completions.create(
@@ -88,19 +94,30 @@ class RAGPipeline:
             messages=[{"role": "user", "content": prompt}]
         )
         return response.choices[0].message.content
-
     def run(self, query):
+        try:
+            context = self.retrieve_context(query)
+    
+            # 🔥 HANDLE EMPTY CONTEXT
+            if not context:
+                return "No content available from document."
+    
+            prompt = f"""
+            Context:
+            {context}
+    
+            Question:
+            {query}
+            """
+    
+            response = self.llm.invoke(prompt)
+    
+            if hasattr(response, "content"):
+                return response.content
+    
+            return str(response)
+    
+        except Exception as e:
+            print("RAG Error:", str(e))
+        return "Error generating response"
         
-        context = self.retrieve_context(query)
-        
-        prompt = f"""
-        Use the context below to answer:
-
-        Context:
-        {context}
-
-        Query:
-        {query}
-        """
-
-        return self.generate(prompt)
