@@ -1,8 +1,11 @@
 # rag/rag_pipeline.py
 import streamlit as st
-from langchain.vectorstores import FAISS
-from langchain.embeddings import HuggingFaceEmbeddings
-from langchain.schema import Document
+#from langchain.vectorstores import FAISS
+#from langchain.embeddings import HuggingFaceEmbeddings
+#from langchain.schema import Document
+from langchain_community.vectorstores import FAISS
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_core.documents import Document
 
 from rag.document_loader import load_document
 from rag.chunking import chunk_text
