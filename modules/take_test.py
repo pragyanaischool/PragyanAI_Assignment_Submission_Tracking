@@ -43,12 +43,12 @@ def load_questions(test_id):
         context = qa_chain.run("Extract key concepts from document")
 
         questions = generate_questions(context)
+        
+       # st.session_state.questions = [
+       #     q.strip() for q in questions.split("\n") if q.strip()
+       # ][:MAX_QUESTIONS]
 
-        st.session_state.questions = [
-            q.strip() for q in questions.split("\n") if q.strip()
-        ][:MAX_QUESTIONS]
-
-
+        st.session_state.questions = generate_questions(context).split("\n")
 # ==============================
 # 💾 SAVE QUESTION LOG
 # ==============================
