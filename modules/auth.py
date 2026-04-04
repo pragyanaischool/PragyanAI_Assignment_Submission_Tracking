@@ -1,13 +1,12 @@
 # modules/auth.py
 
 import streamlit as st
+import pandas as pd
 import hashlib
 from datetime import datetime
 
-from database.db_manager import load_data, insert_row
-from database.validators import validate_user_data
 from config.settings import USERS_FILE
-from config.roles import Roles
+from database.db_manager import load_data, insert_row
 
 
 # ==============================
@@ -19,103 +18,114 @@ def hash_password(password: str) -> str:
 
 
 # ==============================
-# 👤 REGISTER USER
-# ==============================
-
-def register_user():
-    st.subheader("📝 Register")
-
-    name = st.text_input("Full Name")
-    usn = st.text_input("USN")
-    email = st.text_input("Email")
-    password = st.text_input("Password", type="password")
-
-    if st.button("Register"):
-        user_data = {
-            "User_ID": usn,
-            "Name": name,
-            "USN": usn,
-            "Email": email,
-            "Password": hash_password(password),
-            "Role": Roles.STUDENT,
-            "Approved": False,
-            "Created_At": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        }
-
-        try:
-            validate_user_data(user_data)
-            insert_row(USERS_FILE, user_data)
-            st.success("Registered successfully! Wait for admin approval.")
-        except Exception as e:
-            st.error(str(e))
-
-
-# ==============================
 # 🔑 LOGIN USER
 # ==============================
 
 def login_user():
     st.subheader("🔐 Login")
 
-    usn = st.text_input("User ID / USN")
-    password = st.text_input("Password", type="password")
+    email = st.text_input("Email", key="login_email")
+    password = st.text_input("Password", type="password", key="login_password")
 
-    if st.button("Login"):
+    if st.button("Login", key="login_btn"):
         df = load_data(USERS_FILE)
 
         if df.empty:
-            st.error("No users found")
+            st.error("No users found. Please register.")
             return None
 
-        user = df[df["User_ID"] == usn]
+        hashed_pw = hash_password(password)
 
-        if user.empty:
-            st.error("User not found")
-            return None
+        user = df[
+            (df["Email"] == email) &
+            (df["Password"] == hashed_pw)
+        ]
 
-        user = user.iloc[0]
+        if not user.empty:
+            user_data = user.iloc[0].to_dict()
 
-        if user["Password"] != hash_password(password):
-            st.error("Invalid password")
-            return None
+            if not user_data.get("Approved", False):
+                st.warning("⏳ Your account is not approved yet")
+                return None
 
-        if not user["Approved"]:
-            st.warning("Waiting for admin approval")
-            return None
-
-        st.session_state["user"] = user.to_dict()
-        st.success(f"Welcome {user['Name']}")
-
-        return user.to_dict()
-
-    return None
+            st.success("✅ Login successful!")
+            st.session_state.user = user_data
+            st.rerun()
+        else:
+            st.error("❌ Invalid email or password")
 
 
 # ==============================
-# 🔄 AUTH FLOW CONTROLLER
+# 📝 REGISTER USER
+# ==============================
+
+def register_user():
+    st.subheader("📝 Register")
+
+    name = st.text_input("Name", key="register_name")
+    usn = st.text_input("USN", key="register_usn")
+    email = st.text_input("Email", key="register_email")
+    password = st.text_input("Password", type="password", key="register_password")
+
+    if st.button("Register", key="register_btn"):
+        if not name or not usn or not email or not password:
+            st.warning("⚠️ Please fill all fields")
+            return
+
+        df = load_data(USERS_FILE)
+
+        # Check duplicate email or USN
+        if not df.empty:
+            if email in df["Email"].values:
+                st.error("Email already exists")
+                return
+            if usn in df["USN"].values:
+                st.error("USN already exists")
+                return
+
+        user_data = {
+            "User_ID": usn,
+            "Name": name,
+            "USN": usn,
+            "Email": email,
+            "Password": hash_password(password),
+            "Role": "student",
+            "Approved": False,
+            "Created_At": datetime.now()
+        }
+
+        insert_row(USERS_FILE, user_data)
+
+        st.success("✅ Registration successful! Await admin approval.")
+
+
+# ==============================
+# 🔄 AUTH PAGE
 # ==============================
 
 def auth_page():
-    st.title("🔐 PragyanAI Login System")
+    st.title("🎓 PragyanAI Login System")
 
-    tab1, tab2 = st.tabs(["Login", "Register"])
+    menu = st.radio(
+        "Choose Option",
+        ["Login", "Register"],
+        key="auth_menu"
+    )
 
-    with tab1:
-        user = login_user()
-        if user:
-            return user
-
-    with tab2:
+    if menu == "Login":
+        login_user()
+    else:
         register_user()
 
-    return None
+    return st.session_state.get("user")
 
 
 # ==============================
-# 🔓 LOGOUT
+# 🚪 LOGOUT
 # ==============================
 
 def logout():
-    if st.button("Logout"):
-        st.session_state.pop("user", None)
+    if st.button("Logout", key="logout_btn"):
+        st.session_state.clear()
         st.rerun()
+        
