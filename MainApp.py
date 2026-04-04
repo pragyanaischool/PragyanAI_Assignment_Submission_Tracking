@@ -1,7 +1,7 @@
 # app.py
 
 import streamlit as st
-
+import sys
 # ==============================
 # ⚙️ INIT SYSTEM
 # ==============================
@@ -9,6 +9,8 @@ import streamlit as st
 from database.migrations import run_migrations
 from utils.session_manager import init_session, get_user, clear_session
 from ui.styles import apply_styles
+
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
 run_migrations()
 init_session()
