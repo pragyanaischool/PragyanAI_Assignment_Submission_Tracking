@@ -39,8 +39,12 @@ def load_questions(test_id):
 
         qa_chain = load_rag_pipeline(doc_path)
 
-        context = qa_chain.run("Extract key concepts from document")
+        #context = qa_chain.run("Extract key concepts from document")
+        response = qa_chain.invoke({
+        "query": "Extract key concepts from document"
+        })
 
+        context = response.get("result") or response.get("output_text") or str(response)
         questions = generate_questions(context)
         
        # st.session_state.questions = [
