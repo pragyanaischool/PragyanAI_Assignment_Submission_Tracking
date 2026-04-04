@@ -29,6 +29,11 @@ def get_llm():
 # ==============================
 
 def build_vector_store(file_path):
+
+    print("Checking file path:", file_path)
+    print("Absolute path:", os.path.abspath(file_path))
+    print("File exists:", os.path.exists(file_path))
+    
     text = load_document(file_path)
 
     chunks = chunk_text(text)
@@ -76,14 +81,16 @@ class RAGPipeline:
         except Exception as e:
             print("Retriever Error:", str(e))
         return "Error retrieving context"
+   
     def generate(self, prompt):
         response = self.client.chat.completions.create(
-            model="llama3-70b-8192",
+            model="openai/gpt-oss-120b",
             messages=[{"role": "user", "content": prompt}]
         )
         return response.choices[0].message.content
 
     def run(self, query):
+        
         context = self.retrieve_context(query)
         
         prompt = f"""
