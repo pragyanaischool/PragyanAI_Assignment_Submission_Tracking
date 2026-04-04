@@ -38,9 +38,9 @@ def load_questions(test_id):
         doc_path = f"{DOCS_DIR}/{test_id}.pdf"
 
         qa_chain = load_rag_pipeline(doc_path)
-
+        st.write("QA Chain Type:", type(qa_chain))
         #context = qa_chain.run("Extract key concepts from document")
-        response = qa_chain.invoke({
+        response = qa_chain.run({
         "query": "Extract key concepts from document"
         })
 
