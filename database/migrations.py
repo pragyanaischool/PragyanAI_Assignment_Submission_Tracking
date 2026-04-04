@@ -48,7 +48,7 @@ def seed_users():
             "Name": "Admin",
             "USN": "ADMIN01",
             "Email": "admin@ai.com",
-            "Password": "admin123",
+            "Password": hash_password("admin123"),
             "Role": "admin",
             "Approved": True,
             "Created_At": datetime.now()
