@@ -1,5 +1,166 @@
 # modules/take_test.py
+# modules/take_test.py
 
+import streamlit as st
+import os
+from datetime import datetime
+
+from rag.rag_pipeline import load_rag_pipeline
+from agents.question_agent import generate_questions
+from agents.hint_agent import generate_hint
+from agents.explain_agent import generate_explanation
+from agents.example_agent import generate_example
+
+from database.db_manager import insert_row
+from config.settings import TEST_SESSIONS_FILE, QUESTION_LOGS_FILE
+
+
+# ==============================
+# 🧠 INIT TEST SESSION
+# ==============================
+
+def init_test_session(user, test_id):
+
+    if "test_initialized" not in st.session_state:
+        st.session_state.test_initialized = True
+        st.session_state.questions = []
+        st.session_state.q_index = 0
+        st.session_state.answers = {}
+        st.session_state.start_time = datetime.now()
+
+
+# ==============================
+# 📄 LOAD QUESTIONS (FIXED)
+# ==============================
+
+def load_questions(test_id):
+
+    # Prevent reloading
+    if st.session_state.get("questions"):
+        return
+
+    doc_path = f"data/docs/{test_id}.pdf"
+
+    if not os.path.exists(doc_path):
+        st.error(f"❌ Document not found: {doc_path}")
+        st.session_state.questions = []
+        return
+
+    # Load RAG pipeline
+    qa_chain = load_rag_pipeline(doc_path)
+
+    st.write("QA Chain Type:", type(qa_chain))
+
+    # ✅ FIXED: run returns STRING (NOT dict)
+    response = qa_chain.run("Extract key concepts from document")
+
+    st.write("Response type:", type(response))
+
+    context = response
+
+    if not context:
+        st.error("❌ No content generated from document")
+        st.session_state.questions = []
+        return
+
+    # Generate questions
+    questions = generate_questions(context)
+
+    if not questions:
+        st.error("❌ Failed to generate questions")
+        st.session_state.questions = []
+        return
+
+    # Save in session
+    st.session_state.questions = questions
+    st.session_state.q_index = 0
+
+
+# ==============================
+# 📝 MAIN TEST PAGE
+# ==============================
+
+def take_test_page(user, test_id):
+
+    st.title(f"🧠 Take Test: {test_id}")
+
+    init_test_session(user, test_id)
+    load_questions(test_id)
+
+    questions = st.session_state.get("questions", [])
+    idx = st.session_state.get("q_index", 0)
+
+    if not questions:
+        st.warning("⚠️ No questions available")
+        return
+
+    # Current question
+    question = questions[idx]
+
+    st.markdown(f"### Q{idx+1}: {question}")
+
+    # Answer input
+    answer = st.text_area(
+        "Your Answer",
+        key=f"answer_{idx}"
+    )
+
+    # ==============================
+    # 🤖 AI SUPPORT (HINT / EXPLAIN)
+    # ==============================
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        if st.button("💡 Hint", key=f"hint_{idx}"):
+            hint = generate_hint(question)
+            st.info(hint)
+
+    with col2:
+        if st.button("📘 Explain", key=f"explain_{idx}"):
+            explanation = generate_explanation(question)
+            st.success(explanation)
+
+    with col3:
+        if st.button("📌 Example", key=f"example_{idx}"):
+            example = generate_example(question)
+            st.warning(example)
+
+    # ==============================
+    # ➡️ NAVIGATION
+    # ==============================
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        if st.button("⬅️ Previous") and idx > 0:
+            st.session_state.q_index -= 1
+
+    with col2:
+        if st.button("➡️ Next") and idx < len(questions) - 1:
+            st.session_state.answers[idx] = answer
+            st.session_state.q_index += 1
+
+    # ==============================
+    # ✅ SUBMIT TEST
+    # ==============================
+
+    if st.button("✅ Submit Test"):
+
+        end_time = datetime.now()
+
+        insert_row(TEST_SESSIONS_FILE, {
+            "user_id": user["email"],
+            "test_id": test_id,
+            "answers": str(st.session_state.answers),
+            "start_time": st.session_state.start_time,
+            "end_time": end_time
+        })
+
+        st.success("🎉 Test submitted successfully!")
+
+        # Reset session
+        st.session_state.clear()
 import streamlit as st
 import uuid
 from datetime import datetime
