@@ -1,5 +1,5 @@
 # rag/rag_pipeline.py
-
+import streamlit as st
 from langchain.vectorstores import FAISS
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.schema import Document
@@ -12,7 +12,6 @@ from rag.retriever import get_retriever
 from groq import Groq
 import os
 from config.settings import GROQ_API_KEY
-
 
 # ==============================
 # 🤖 INIT LLM (GROQ)
@@ -43,7 +42,7 @@ def build_vector_store(file_path):
 # ==============================
 # 🔍 LOAD RAG PIPELINE
 # ==============================
-
+@st.cache_resource
 def load_rag_pipeline(file_path):
     vectorstore = build_vector_store(file_path)
     retriever = get_retriever(vectorstore)
