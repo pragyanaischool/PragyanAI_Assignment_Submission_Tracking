@@ -57,13 +57,28 @@ def login_user():
         # 🔥 DEBUG (temporary)
         st.write("DEBUG USERS:", df)
 
+        # Normalize input
+        email = email.strip().lower()
+        password = password.strip()
+
+        # Normalize dataframe
+        df["Email"] = df["Email"].astype(str).str.strip().str.lower()
+        df["Password"] = df["Password"].astype(str).str.strip()
+
+        # Hash input password
+        hashed_pw = hash_password(password)
+
+        # Match user
         user = df[
             (df["Email"] == email) &
-            (
-                (df["Password"] == password)  # plain
-            )
+            ((df["Password"] == hashed_pw) | (df["Password"] == password))
         ]
-
+        
+        st.write("Entered:", email, password)
+        st.write("Hashed Input:", hashed_pw)
+        st.write("DB Emails:", df["Email"].tolist())
+        st.write("DB Passwords:", df["Password"].tolist())
+        
         if not user.empty:
             user_data = user.iloc[0].to_dict()
 
