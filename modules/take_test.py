@@ -9,10 +9,10 @@ from database.db_manager import insert_row
 from config.settings import TEST_SESSIONS_FILE, QUESTION_LOGS_FILE
 
 from rag.rag_pipeline import load_rag_pipeline
-#from agents.question_agent import generate_questions
-#from agents.hint_agent import generate_hint
-#from agents.explain_agent import generate_explanation
-#from agents.example_agent import generate_example
+from .question_agent import generate_questions
+from .hint_agent import generate_hint
+from .explain_agent import generate_explanation
+from .example_agent import generate_example
 
 from agents.question_agent import generate_questions
 from agents.hint_agent import generate_hint
