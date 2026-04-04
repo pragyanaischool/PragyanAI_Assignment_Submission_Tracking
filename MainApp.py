@@ -9,10 +9,12 @@ import os
 from database.migrations import run_migrations
 from utils.session_manager import init_session, get_user, clear_session
 from ui.styles import apply_styles
-
+from config.settings import USERS_FILE
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
-run_migrations()
+if not os.path.exists(USERS_FILE):
+    run_migrations()
+#run_migrations()
 init_session()
 apply_styles()
 
