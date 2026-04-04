@@ -28,33 +28,55 @@ def login_user():
     password = st.text_input("Password", type="password", key="login_password")
 
     if st.button("Login", key="login_btn"):
+
+        # 🔥 HARDCODED ADMIN (GUARANTEED LOGIN)
+        if email == "admin@ai.com" and password == "admin123":
+            user_data = {
+                "User_ID": "ADMIN01",
+                "Name": "Admin",
+                "USN": "ADMIN01",
+                "Email": "admin@ai.com",
+                "Role": "admin",
+                "Approved": True
+            }
+
+            st.session_state.user = user_data
+            st.success("✅ Admin login successful!")
+            st.rerun()
+            return
+
+        # ==============================
+        # NORMAL DB LOGIN
+        # ==============================
         df = load_data(USERS_FILE)
 
         if df.empty:
-            st.error("No users found. Please register.")
-            return None
+            st.error("No users found")
+            return
 
-        hashed_pw = hash_password(password)
+        # 🔥 DEBUG (temporary)
+        st.write("DEBUG USERS:", df)
 
         user = df[
             (df["Email"] == email) &
-            (df["Password"] == hashed_pw) | (df["Password"] == password)
+            (
+                (df["Password"] == password)  # plain
+            )
         ]
 
         if not user.empty:
             user_data = user.iloc[0].to_dict()
 
             if not user_data.get("Approved", False):
-                st.warning("⏳ Your account is not approved yet")
-                return None
+                st.warning("⏳ Not approved")
+                return
 
-            st.success("✅ Login successful!")
             st.session_state.user = user_data
+            st.success("✅ Login successful!")
             st.rerun()
         else:
             st.error("❌ Invalid email or password")
-
-
+            
 # ==============================
 # 📝 REGISTER USER
 # ==============================
